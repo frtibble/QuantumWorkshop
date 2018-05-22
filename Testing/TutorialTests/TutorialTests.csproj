@@ -5,7 +5,10 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
-    <RuntimeFrameworkVersion>2.0.5</RuntimeFrameworkVersion>
+    <!-- Modify the RuntimeFrameworkVersion below to reflect your installed version of .NET Core (for running 'dotnet xunit' without errors) -->
+    <!-- For Windows, the version can be found by looking in this folder: C:\Program Files\dotnet\shared\Microsoft.NETCore.App -->
+    <!-- For Mac, this is probably the right location: /usr/local/share/dotnet/shared/Microsoft.NETCore.App !!PLEASE CORRECT ME IF I AM WRONG!! -->
+    <RuntimeFrameworkVersion></RuntimeFrameworkVersion> 
   </PropertyGroup>
 
   <ItemGroup>
