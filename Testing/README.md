@@ -31,8 +31,8 @@ To set up a new Q# project with unit tests and open it in VS Code, run the follo
 mkdir Testing
 cd .\Testing\
 dotnet new sln --name Tutorial
-dotnet new console --lang q# --output Tutorial
-dotnet new xunit --lang q# -o TutorialTests
+dotnet new console -lang q# --output Tutorial
+dotnet new xunit -lang q# -o TutorialTests
 dotnet sln add .\Tutorial\Tutorial.csproj
 dotnet sln add .\TutorialTests\TutorialTests.csproj
 dotnet restore
