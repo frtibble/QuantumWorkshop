@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
+    <PlatformTarget>x64</PlatformTarget>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <!-- Modify the RuntimeFrameworkVersion below to reflect your installed version of .NET Core (for running 'dotnet xunit' without errors) -->
+    <!-- For Windows, the version can be found by looking in this folder: C:\Program Files\dotnet\shared\Microsoft.NETCore.App -->
+    <!-- For Mac, this is probably the right location: /usr/local/share/dotnet/shared/Microsoft.NETCore.App !!PLEASE CORRECT ME IF I AM WRONG!! -->
+    <RuntimeFrameworkVersion></RuntimeFrameworkVersion> 
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Quantum.Canon" Version="0.2.1802.1603-preview" />
+    <PackageReference Include="Microsoft.Quantum.Development.Kit" Version="0.2.1802.1603-preview" />
+    <PackageReference Include="Microsoft.Quantum.xUnit" Version="0.2.1802.1603-preview" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tutorial\Tutorial.csproj" />
+  </ItemGroup>
+</Project>
