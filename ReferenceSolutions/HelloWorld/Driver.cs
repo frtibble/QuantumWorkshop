@@ -9,7 +9,7 @@ namespace HelloWorld
         {
             using (var sim = new QuantumSimulator())
             {
-                var result = Greet.Run(sim, "Imperial").Result;
+                var result = Greet.Run(sim, "Quantum").Result;
                 System.Console.WriteLine(result);
             }
 

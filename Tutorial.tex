@@ -1,0 +1,660 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{hyperref}
+\usepackage{braket}
+\usepackage{array}% http://ctan.org/pkg/array
+\usepackage{graphicx}% http://ctan.org/pkg/graphicx
+
+\usepackage{listings}
+\usepackage{color}
+
+\lstset{frame=tb,
+  language=C,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Q\# Tutorial}
+
+\author{Frances Tibble and Anita Ramanan}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Q\# (Q-sharp) is a domain-specific programming language used for expressing quantum algorithms. By the end of this tutorial you will have run a simple `HelloWorld' example, demonstrated superposition and entanglement, and implemented an algorithm for quantum teleportation. This tutorial is designed to give you a grounding in Q\# so that you can independently explore more advanced samples provided by the QDK - and hopefully start writing your own!
+\end{abstract}
+
+\section{Installing the Quantum Development Kit (QDK)}
+\label{sec:install}
+
+The QDK is available for Windows, macOS, and Linux (Ubuntu). You can find the full download instructions here:
+\url{https://docs.microsoft.com/en-us/quantum/quantum-installconfig?view=qsharp-preview&tabs=tabid-vscode}
+
+\begin{itemize}
+\item For Windows: We recommend \textbf{Visual Studio 2017} and the \textbf{Microsoft Quantum Development Kit extension}. You can also use Visual Studio Code and the Microsoft Quantum Development Kit for Visual Studio Code extension. 
+\item For macOS or Linux: We recommend \textbf{Visual Studio Code} and the \textbf{Microsoft Quantum Development Kit for Visual Studio Code extension}.
+\end{itemize}
+
+If you have any issues with installation please ask one of the lab helpers.
+
+\section{Cloning the Q\# Tutorial Code}
+\label{sec:tutorialcode}
+Once you've got your Q\# Development Environment set up, you'll need to get a copy of the tutorial code on your machine. You can clone that from the following location: 
+\url{https://github.com/frtibble/QuantumWorkshop}
+\\
+\\
+You can use the following Git command from your favourite terminal to do this:\\
+
+\begin{lstlisting}
+$ git clone https://github.com/frtibble/QuantumWorkshop
+\end{lstlisting}
+
+\section{Writing a Quantum Program - The Basics}
+\label{sec:theory}
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{The Q\# Programming Language} \par
+            A natural model for quantum computation is to treat the quantum computer as a\textbf{ coprocessor}, similar to that used for GPUs, FPGAs, and other adjunct processors. In this model, the primary control logic runs \textbf{classical} code on a classical `host' computer. When we need to exploit quantum properties, the host program can invoke a \textbf{quantum} sub-program that runs on the adjunct processor.%
+      \end{tabular}
+    \right]
+\]\\
+
+Our project structure will have the following files:
+\begin{itemize}
+\item A \verb$Driver.cs$ file, which will hold the classical C\# code that will `drive' our quantum code. This can be written in C\#, F\# or any other classical language with support for .NET.
+\item An \verb$Operation.qs$ file, which will hold the quantum code itself.
+\end{itemize}
+
+\subsection{Create a Project and Solution}
+To see how these files are used together, let's create a simple `Hello World' project:
+\begin{itemize}
+\item For those using \textbf{Visual Studio 2017}: 
+	\begin{itemize}
+	\item Open up Visual Studio 2017.
+	\item Go to the \verb$File$ menu and select \verb$New > Project...$.
+	\item In the project template explorer, under \verb$Installed > Visual C#$, select the \verb$Q# Application$ template. Make sure you have \verb$.NET Framework 4.6.1$ selected in the list at the top of the \verb$New Project$ dialog box. 
+	\item Give your project the name \verb$HelloWorld$.
+	\end{itemize}
+ \item For those using the command line or \textbf{Visual Studio Code}:
+ 	\begin{itemize}
+ 	\item Run the following commands in your favourite command line (e.g PowerShell or Bash). The final command opens the code in Visual Studio Code.
+    \begin{lstlisting}
+$ dotnet new -i "Microsoft.Quantum.ProjectTemplates::0.2-*"
+$ dotnet new console -lang Q# --output HelloWorld
+$ cd HelloWorld 
+$ code . 
+\end{lstlisting}
+ 	\end{itemize}
+\end{itemize}
+
+Again, if you have any issues with installation please share your frustration with one of the lab helpers.
+
+\subsection{Add the Quantum Code}
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Q\# Operation and Function Types} \par
+            A Q\# \textbf{operation} is a \textbf{quantum} subroutine that contains quantum operations. \\
+\\
+A Q\# \textbf{function} is a \textbf{classical} subroutine used within a quantum algorithm. It may contain classical code but no quantum operations. Functions may not allocate or borrow qubits, nor may they call operations. It is possible, however, to pass them operations or qubits for processing.\\
+\\
+Together, operations and functions are known as \textbf{callables}.\\
+%
+      \end{tabular}
+    \right]
+\]\\
+
+To write our `Hello World' example we're going to modify the \verb$Operation.qs$ file in our newly created project:
+\begin{itemize}
+\item You'll see it contains the definition for an operation which is currently empty. We're going to replace that definition with a new one called `Greet', which will return a greeting using the input. The code for `Greet' is this:
+\begin{lstlisting}
+    operation Greet (who : String) : (String)
+    {
+        body
+        {
+            return $"Hello, {who}!";
+        }
+    }
+\end{lstlisting}
+\item Looking at the operation signature, we can see it takes a \verb$String$ as input, and returns a \verb$String$ as output (given after the colon). 
+\end{itemize}
+
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Primitive Types} \par
+            The \verb$String$ type is a sequence of Unicode characters that is opaque to the user once created. This type is used to report messages to a classical host.\\
+            \\
+            Other primitive types include \verb$Int$, \verb$Double$, \verb$Bool$, \verb$Qubit$, \verb$Pauli$, \verb$Result$ and \verb$Range$. You can find more information on these in the documentation, but we'll encounter many of these soon.\\
+            \\
+            \url{https://docs.microsoft.com/en-us/quantum/quantum-qr-typemodel?view=qsharp-preview#primitive-types}\\
+%
+      \end{tabular}
+    \right]
+\]\\
+
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Type Signatures} \par
+            All Q\# callables are considered to take a single value as input and return a single value as output. Both the input and output values may be tuples. Callables that have no result return the empty tuple, \verb$()$. Callables that have no input take the empty tuple, \verb$()$, as input.\\
+%
+      \end{tabular}
+    \right]
+\]\\
+
+
+\subsection{Add the Classical Code}
+Now that we have a quantum routine, we can call it from the \verb$Main$ method in the \verb$Driver.cs$ file. The C\# driver does four key things:
+\begin{enumerate}
+\item It uses a quantum simulator to execute and debug our quantum algorithms. 
+\item It computes any arguments that are required for the quantum algorithm to run.
+\item It runs the quantum algorithm. Note: it executes asynchronously because execution on actual hardware will be asynchronous. When we fetch the \verb$Result$ property; this blocks execution until the task completes and returns the result synchronously.
+\item It processes the result of the operation.
+\end{enumerate}
+
+Here's the code that you need to add inside the \verb$Main$ method body:
+    \begin{lstlisting}
+           using (var sim = new QuantumSimulator())
+            {
+                var result = Greet.Run(sim, "Quantum").Result;
+                System.Console.WriteLine(result);
+            }
+	\end{lstlisting}
+    
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{The Full State Quantum Simulator} \par
+            The quantum simulator is exposed via the \verb$QuantumSimulator$ class. To use the simulator, simply create an instance of this class and pass it to the \verb$Run$ method of the quantum operation you want to execute along with the rest of the parameters.\\
+%
+      \end{tabular}
+    \right]
+\]\\
+
+\subsection{Run the Code}
+
+\begin{itemize}
+\item For those using Visual Studio 2017: Just hit \verb$F5$, and your program should build and run! 
+\item For command line and Visual Studio Code: 
+\begin{lstlisting}
+$ dotnet run
+\end{lstlisting}
+\end{itemize}
+
+This should output `Hello, Quantum!'. Of course, this isn't very impressive. But now we've seen how it works, we can write our first quantum application. 
+
+\section{Tutorial: Challenge 1 - Creating a Bell State}
+To begin this series of challenges we're going to start with the simplest program possible and build it up to demonstrate quantum superposition and quantum entanglement by creating a Bell State. We will start with a qubit in a basis state $\ket{0}$, perform some operations on it and then measure the result.
+
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Primitive Types: Qubit} \par
+            The \verb$Qubit$ type represents a quantum bit or qubit. Once allocated, a qubit can then be passed to functions and operations. \\
+            \\
+            In Q\#, all qubits are dynamically allocated and released, rather than being fixed resources that are there for the entire lifetime of a complex algorithm. A using statement allocates a set of qubits at the start and releases those qubits at the end of the block. Any qubits allocated in this way start off in the $\ket{0}$ state.\\
+            \\
+            From the perspective of a Q\# program, a qubit is an entirely opaque reference to the internal structure of a target machine. A Q\# program has no ability to introspect into the state of a qubit, its representation on a target machine, or even whether it is the same qubit as any other qubit available to the program. Rather, a program can call operations such as \verb$Measure$ to learn information from a qubit, and call operations such as \verb$X$ and \verb$H$ to act on the state of a qubit. \\
+            \\
+            Thus, similar to how a graphics shader program accumulates a description of transformations to each vertex, a quantum program in Q\# accumulates transformations to quantum states. This allows us to be entirely agnostic about what a quantum state even \textit{is} on each target machine, which might have different interpretations depending on the machine. \\
+%
+      \end{tabular}
+    \right]
+\]\\
+
+
+\subsection{Task 1: Set a Qubit State}
+You should have a copy of the tutorial code locally on your machine. Open the `Bell' folder in Visual Studio or VS Code, and go to `Operation.qs' where you'll find a commented line that shows you where to write the code for the first (and subsequent) tasks.\\
+\\
+
+When we allocate a qubit it is in the $\ket{0}$ state, but we may receive a qubit in another state. For this reason we are going to begin by creating a \verb$Set$ operation which we can use to set a qubit into a known state (\verb$Zero$ or \verb$One$). Inside the body of the \verb$Set$ operation, add the following code:
+    \begin{lstlisting}
+		let current = M(q1);
+	\end{lstlisting}
+This code measures the qubit, \textbf{q1}, and assigns its value to the \textbf{current} variable. 
+
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Variables} \par
+            Q\# deals with variables in a unique way. By default, variables in Q\# are immutable; their value may not be changed after they are bound. The \textbf{let} keyword is used to indicate the binding of an \textbf{immutable} variable. Operation arguments are always immutable.\\
+\\
+If you need a variable whose value \textit{can} change, you can declare the variable with the \textbf{mutable} keyword. A mutable variable's value may be changed using a \textbf{set} statement.\\
+\\
+In both cases, the type of a variable is inferred by the compiler. Q\# doesn't require any type annotations for variables.
+%
+      \end{tabular}
+    \right]
+\]\\
+\\
+Beneath that line of code, we are going to use an \textbf{if} statement to see if our qubit is in the state we want. If it is, we leave it alone, otherwise, we flip it with the \verb$X$ gate. How can we translate that into code? Like this:
+
+    \begin{lstlisting}
+            if (current == desired)
+            {
+                // Do nothing
+            } else {
+                X(q1);
+            }
+	\end{lstlisting}
+
+This can be written more succinctly, so you should add this code to the \textbf{body}, underneath the measurement:
+
+    \begin{lstlisting}
+            if (current != desired)
+            {
+                X(q1);
+            }
+	\end{lstlisting}
+    
+The complete file should now look like:
+    \begin{lstlisting}
+namespace Quantum.Bell
+{
+    open Microsoft.Quantum.Primitive;
+    open Microsoft.Quantum.Canon;
+
+    operation Set (desired: Result, q1: Qubit) : ()
+    {
+        body
+        {
+            let current = M(q1);
+            if (desired != current)
+            {
+                X(q1);
+            }
+        }
+    }
+}
+	\end{lstlisting}
+    
+    Great!
+    
+    
+\subsection{Task 2: Create a Looping Counter}
+When we create a Bell State we create an equal superposition of \verb$Zero$ and \verb$One$. However, when we perform a measurement, the qubit will collapse to just one of these states. If we would like to verify that we \textit{are} creating a Bell State, we can do so statistically, by creating a \verb$BellTest$ that performs this process multiple times, and maintains a count of how many times we've observed a \verb$One$ and how many times we've observed a \verb$Zero$. To begin with, we'll create a looping counter that simply sets a qubit in some state and then measures it - so there should be no surprises here. \\
+
+Note: To begin with, we'll give a full description of the problem, and a full solution. As we progress, the solutions will become less complete so that it is more of a challenge. 
+
+To complete the code body of \verb$BellTest$ you should:
+\begin{itemize}
+\item Declare a \textbf{mutable} variable with the name `numOnes' with the initial value `0'. This is what we will use to tally how many \verb$Ones$ we have seen.
+\item Add a \verb$using$ statement, which allocates an array of qubits for use in our block of code. The array should contain 1 \verb$Qubit$ and be allocated to a variable named `qubits'. The syntax for that looks like this:
+\begin{lstlisting}
+using (qubits = Qubit[1])
+		{
+				//
+				// More code will go here
+				//
+		}
+	\end{lstlisting}
+\item Inside the \verb$using$ statement, you should add a \verb$for$ loop which loops from \textbf{1} to \textbf{count}. This will enable us to repeat the process of creating a Bell State and measuring it multiple times. The syntax for that looks like this:
+\begin{lstlisting}
+			for (test in 1..count)
+			{
+					//
+					// More code will go here
+					//
+			}
+	\end{lstlisting}
+\item Inside the \verb$for$ loop you should use the \verb$Set$ operation we defined earlier to set the first qubit in our array to be the \textbf{initial} value. We can access the first qubit in the array with \verb$qubits[0]$. This sets our qubit to a known value.
+\item Beneath that, you should measure the first qubit in the array, and assign that to an immutable `result' variable (recall we use the \verb$let$ keyword to assign immutable variables). 
+\item Beneath this we're going to add an \verb$if$ statement to test if the result is \verb$One$. If it is, we will increment the value of `numOnes'. Recall that we use the \verb$set$ statement to alter the value of mutable variables).
+\item We are now finished with the qubit we have been using. It is good practice to reset the qubit back to a known state. Using the \verb$Set$ operation we defined earlier, set the first qubit in the array to \verb$Zero$. This line of code goes outside the \verb$for$ loop, but within the \verb$using$ statement.
+\item Finally, outside the \verb$using$ statement, but within the \verb$body$ you should add a line of code that returns a tuple, the first in the tuple should be the number of \verb$Zero$s, and the second in the tuple should be the number of \verb$One$s.\\
+\end{itemize}
+
+Compare your solution to the one provided below:
+\begin{lstlisting}
+    operation BellTest (count : Int, initial: Result) : (Int,Int)
+    {
+        body
+        {
+            mutable numOnes = 0;
+            using (qubits = Qubit[1])
+            {
+                for (test in 1..count)
+                {
+                    Set (initial, qubits[0]);
+
+                    let result = M (qubits[0]);
+
+                    // Count the number of ones we saw:
+                    if (result == One)
+                    {
+                        set numOnes = numOnes + 1;
+                    }
+                }
+                Set(Zero, qubits[0]);
+            }
+            // Return number of times we saw a |0> and number of times we saw a |1>
+            return (count-numOnes, numOnes);
+        }
+    }
+\end{lstlisting}
+
+Now switch to the \verb$Driver.cs$ file in your development environment. We are going to write the classical code which will do the main tasks we discussed, use a quantum simulator, compute any arguments we need, run the algorithm, and process the result. 
+
+\begin{itemize}
+\item First, you're going to add a \verb$using$ statement inside the \verb$Main$ method, to create the quantum simulator that we will use - remember we saw that syntax in the `HelloWorld' project.
+\item Inside the \verb$using$ statement we're going to create an array of \verb$Result$ values. These are the \textbf{initial} values we'll use in \verb$BellTest$. The code for that is this:
+\begin{lstlisting}
+                // Try initial values
+                Result[] initials = new Result[] { Result.Zero, Result.One };
+\end{lstlisting}
+\item Underneath that line we'll have a \verb$foreach$ statement, which will loop through each \verb$Result$ in \textbf{initials}. The syntax for that looks like this:
+\begin{lstlisting}
+			foreach (Result initial in initials)
+			{
+					//
+					// More code will go here
+					//
+			}
+	\end{lstlisting}
+\item Inside the \verb$foreach$ statement, we're going to add a line that runs the \verb$BellTest$ using the quantum simulator, a count of `1000' and the initial \verb$Result$ as parameters, and assigns it to a `result' variable. If you're not sure how to do this, remind yourself of how we achieved this in the `HelloWorld' example with the simulator and string parameters. 
+\item The \verb$Result$ in the previous line is a tuple. We need to deconstruct the tuple to get the two fields.
+\item Finally, we should write these out to the console. 
+\end{itemize}
+
+The full code for the \verb$Driver.cs$ file is this:
+\begin{lstlisting}
+using Microsoft.Quantum.Simulation.Core;
+using Microsoft.Quantum.Simulation.Simulators;
+
+namespace Quantum.Bell
+{
+    class Driver
+    {
+        static void Main(string[] args)
+        {
+            using (var sim = new QuantumSimulator())
+            {
+                // Try initial values
+                Result[] initials = new Result[] { Result.Zero, Result.One };
+                foreach (Result initial in initials)
+                {
+                    var res = BellTest.Run(sim, 1000, initial).Result;
+                    var (numZeros, numOnes) = res;
+                    System.Console.WriteLine(
+                        $"Init:{initial,-4} 0s={numZeros,-4} 1s={numOnes,-4}");
+                }
+            }
+            System.Console.WriteLine("Press any key to continue...");
+            System.Console.ReadKey();
+        }
+    }
+}
+\end{lstlisting}
+
+Now you can run the code! You should get the following output:
+
+\begin{lstlisting}
+Init:Zero 0s=1000 1s=0
+Init:One  0s=0    1s=1000
+Press any key to continue...
+\end{lstlisting}
+
+\subsection{Task 3: Create a Superposition}
+Currently our code just sets our qubit to a desired value, measures it, and returns the result. In this next task we're going to modify our code so that we set our qubit to a desired value, put it in a superposition, measure it, and return the result. 
+
+\begin{itemize}
+\item Return to the \verb$BellTest$ code and add a line of code that applies a Hadamard operation, \verb$H()$, to the first qubit in the array. 
+\end{itemize}
+
+If you run your code again you should get the following output:
+
+\begin{lstlisting}
+Init:Zero 0s=484  1s=516
+Init:One  0s=522  1s=478
+Press any key to continue...
+\end{lstlisting}
+
+Every time we measure, we ask for a classical value, but the qubit is in a continuous state halfway between 0 and 1, so we get (statistically) 0 half the time and 1 half the time. This is known as \textbf{superposition} and gives us our first real view into a quantum state.
+
+\subsection{Task 4: Create Entanglement}
+Now we'll make the promised Bell State and show off \textbf{entanglement}. 
+
+\begin{itemize}
+\item The first thing we'll need to do is allocate 2 qubits instead of 1 in \verb$BellTest$.
+\item Just as before, we're going to set the first qubit (at index 0) to be the \textbf{initial} value.
+\item Beneath that, we're going to set the second qubit (at index 1) to be \verb$Zero$. 
+\item Next line, we're going to keep our Hadamard applied to the first qubit as before - that line stays the same.
+\item Below that, we're going to use a \verb$CNOT$ operation with the first qubit as the control, and the second qubit as the target. You can find more information on \verb$CNOT$ and how to use it in the documentation (along with the other operations that have already been mentioned, such as \verb$M$ and \verb$X$): \url{https://docs.microsoft.com/en-us/qsharp/api/prelude/microsoft.quantum.primitive.cnot?view=qsharp-preview})
+\item Then we're going to keep the line that measures the first qubit and assigns the value to the result variable.
+\item Finally, we also need to reset the second qubit before releasing it (this could also be done with a \verb$for$ loop). We'll add a line after qubit 0 is reset to do this.
+\end{itemize}
+
+If we run this again, we'll get exactly the same 50-50 result we got before. However, what we're really interested in is how the second qubit reacts to the first being measured. We're going to capture this with another statistic.
+
+\begin{itemize}
+\item Go to \verb$BellTest$ once again. Below the `numOnes' declaration, add a \textbf{mutable} variable `agree' with the value `0'.
+\item Inside the \verb$for$ loop, after we've made the measurement on the first qubit, we're going to add an \verb$if$ statement. The condition for the \verb$if$ statement will be, `does a measurement on the \textit{second} qubit equal the result?'. If it \textit{does} we want to increment `agree' by 1.
+\item Finally, we're going to modify what we return. Currently we return two things: the number of times we saw a $\ket{0}$ and the number of times we saw a $\ket{1}$. We're going to add a third to this, the number of times the value of the second qubit was the same as the first qubit after measurement, i.e. our `agree' variable. 
+\item One more thing - since we're now returning three \verb$Int$s instead of two, we'll need to change the type signature of \verb$BellTest$ to reflect this. 
+\end{itemize}
+
+There is now a new return value (\verb$agree$) that will keep track of every time the measurement from the first qubit matches the measurement of the second qubit. Of course, we also have to update the \verb$Driver.cs$ file accordingly:
+\begin{itemize}
+\item Where we desconstruct the \verb$Result$ to extract the `numZeros' and `numOnes', we're going to add `agree' to this as well. 
+\item You should also update the output to the console, so that `agree' is included in the output also. 
+\end{itemize}
+
+Now when we run the code, we get something pretty amazing:
+
+\begin{lstlisting}
+Init:Zero 0s=499  1s=501  agree=1000
+Init:One  0s=490  1s=510  agree=1000
+\end{lstlisting}
+
+Our statistics for the first qubit haven't changed (50-50 chance of a 0 or a 1), but now when we measure the second qubit, it is \textbf{always} the same as what we measured for the first qubit. Our \verb$CNOT$ has entangled the two qubits so that their states are now correlated, regardless of how far apart they are. If you reversed the measurements (did the second qubit before the first), the same thing would happen. The first measurement would be random and the second would be in lock step with whatever was discovered for the first.
+
+\section{Tutorial: Challenge 2 - Quantum Teleportation}
+Quantum teleportation is a technique for sending an unknown quantum state (which we'll refer to as the `\textbf{message}') from a qubit in one location to a qubit in another location (we'll refer to these qubits as `\textbf{here}' and `\textbf{there}', respectively). It can be achieved using the quantum circuit in Figure \ref{fig:teleportation}. \\
+\\
+The tasks in the following challenge are broken down into `theory' and `code'. The theory isn't necessary to complete the tasks, but it may be useful if you want to understand what they are for!
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{teleportation.png}
+  \caption{A text-book quantum circuit that implements the teleportation, including the quantum part, the measurements, and the classically-controlled correction operations.}
+  \label{fig:teleportation}
+\end{figure}
+
+\subsection{Task 1: Create an Entangled State}
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Theory} \par
+            We can represent our \textbf{message} as a vector using Dirac notation:
+$$ |\psi\rangle = \alpha|0\rangle + \beta|1\rangle $$
+The \textbf{message} qubit's state is unknown to us as we do not know the values of $\alpha$ and $\beta$.\\
+\\
+In order to send the message we need for the qubit \textbf{here} to be entangled with the qubit \textbf{there}. This is achieved by applying a Hadamard gate, followed by a CNOT gate. Let's look at the math behind these gate operations.
+We will begin with the qubits \textbf{here} and \textbf{there} both in the $|0\rangle$ state. After entangling these qubits, they are in the state:
+$$ |\phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) $$
+%
+      \end{tabular}
+    \right]
+\]\\
+
+First you need to open the `QuantumTeleportation' folder in Visual Studio or VS Code. Here you'll find `Operation.qs'. In this task you need to add to the \textbf{body} of the \verb$Teleport$ operation. 
+\begin{itemize}
+\item The first thing you should do is write a \verb$using$ statement that allocates 1 \verb$Qubit$ to `register', just as we did in \verb$BellTest$.
+\item Next you are going to assign the first qubit in that register to an immutable variable called `here'.
+\item We can then create the entangled pair between `here' and `there'. The first thing you want to do is apply a \verb$Hadamard$ to `here' (you can see this in the circuit diagram).
+\item Next you want to apply a \verb$CNOT$ with `here' as the control, and `there' as the target.
+\end{itemize}
+
+\subsection{Task 2: Send the Message}
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Theory} \par
+To send the \textbf{message} we first apply a CNOT gate with the \textbf{message} qubit and \textbf{here} qubit as inputs (the \textbf{message} qubit being the control and the \textbf{here} qubit being the target qubit, in this instance). This input state can be written:
+$$ |\psi\rangle|\phi^+\rangle = (\alpha|0\rangle + \beta|1\rangle)(\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)) $$
+This expands to:
+$$ |\psi\rangle|\phi^+\rangle = \frac{\alpha}{\sqrt{2}}|000\rangle + \frac{\alpha}{\sqrt{2}}|011\rangle + \frac{\beta}{\sqrt{2}}|100\rangle + \frac{\beta}{\sqrt{2}}|111\rangle $$
+As a reminder, the CNOT gate flips the target qubit when the control qubit is 1. So for example, an input of $|000\rangle$ will result in no change as the first qubit (the control) is 0. However, take a case where the first qubit is 1 - for example an input of $|100\rangle$. In this instance, the output is $|110\rangle$ as the second qubit (the target) is flipped by the CNOT gate.
+Let's now consider our output once the CNOT gate has acted on our input above. The result is:
+$$ \frac{\alpha}{\sqrt{2}}|000\rangle + \frac{\alpha}{\sqrt{2}}|011\rangle + \frac{\beta}{\sqrt{2}}|110\rangle + \frac{\beta}{\sqrt{2}}|101\rangle $$
+The next step to send the \textbf{message} is to apply a Hadamard gate to the \textbf{message} qubit (that's the first qubit of each term).
+As a reminder, the Hadamard gate does the following:
+\begin{center}
+\begin{tabular}{ |c|c| } 
+ \hline
+ Input & Output \\ 
+ \hline
+ $\vert0\rangle$ & $\frac{1}{\sqrt{2}}(\vert0\rangle + \vert1\rangle)$ \\ 
+ $\vert1\rangle$ & $\frac{1}{\sqrt{2}}(\vert0\rangle - \vert1\rangle)$ \\ 
+ \hline
+\end{tabular}
+\end{center}
+\\
+%
+      \end{tabular}
+    \right]
+\]\\
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{} \par
+If we apply the Hadamard gate to the first qubit of each term of our output above, we get the following result:
+$$ \frac{\alpha}{\sqrt{2}}(\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle))|00\rangle + \frac{\alpha}{\sqrt{2}}(\frac{1}{\sqrt{2}}(|0\rangle + |1\rangle))|11\rangle + $$
+$$ \frac{\beta}{\sqrt{2}}(\frac{1}{\sqrt{2}}(|0\rangle - |1\rangle))|10\rangle + \frac{\beta}{\sqrt{2}}(\frac{1}{\sqrt{2}}(|0\rangle - |1\rangle))|01\rangle $$
+Note that each term has two $\frac{1}{\sqrt{2}}$ factors. We can multiply these out giving the following result:
+$$ \frac{\alpha}{2}(|0\rangle + |1\rangle)|00\rangle + \frac{\alpha}{2}(|0\rangle + |1\rangle)|11\rangle + \frac{\beta}{2}(|0\rangle - |1\rangle)|10\rangle + \frac{\beta}{2}(|0\rangle - |1\rangle)|01\rangle $$
+The $\frac{1}{2}$ factor is common to each term so we can now take it outside the brackets:
+$$ \frac{1}{2}\big[\alpha(|0\rangle + |1\rangle)|00\rangle + \alpha(|0\rangle + |1\rangle)|11\rangle + \beta(|0\rangle - |1\rangle)|10\rangle + \beta(|0\rangle - |1\rangle)|01\rangle\big] $$
+We can then multiply out the brackets for each term giving:
+$$ \frac{1}{2}\big[\alpha|000\rangle + \alpha|100\rangle + \alpha|011\rangle + \alpha|111\rangle + \beta|010\rangle - \beta|110\rangle + \beta|001\rangle - \beta|101\rangle\big] $$
+%
+      \end{tabular}
+    \right]
+\]\\
+
+In this task you are going to add to the \textbf{body} of the \verb$Teleport$ operation, beneath the code in Task 1.
+\begin{itemize}
+\item To send the message you need to use a \verb$CNOT$ gate with `msg' as the control and `here' as the target.
+\item You then need to apply a \verb$Hadamard$ gate to `msg'.
+\end{itemize}
+
+\subsection{Task 3: Measuring the result}
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Theory} \par
+Due to \textbf{here} and \textbf{there} being entangled, any measurement on \textbf{here} will affect the state of \textbf{there}. If we measure the first and second qubit (\textbf{message} and here) we can learn what state there is in, due to this property of entanglement.\\
+\begin{itemize}
+\item If we measure and get a result 00, the superposition collapses, leaving only terms consistent with this result. That's $\alpha|000\rangle +\beta|001\rangle$. This can be refactored to $|00\rangle(\alpha|0\rangle +\beta|1\rangle)$. Therefore if we measure the first and second qubit to be 00, we know that the third qubit, \textbf{there}, is in the state $(\alpha|0\rangle +\beta|1\rangle)$.
+\item If we measure and get a result 01, the superposition collapses, leaving only terms consistent with this result. That's $\alpha|011\rangle +\beta|010\rangle$. This can be refactored to $|01\rangle(\alpha|1\rangle +\beta|0\rangle)$. Therefore if we measure the first and second qubit to be 01, we know that the third qubit, \textbf{there}, is in the state $(\alpha|1\rangle +\beta|0\rangle)$.
+\item If we measure and get a result 10, the superposition collapses, leaving only terms consistent with this result. That's $\alpha|100\rangle -\beta|101\rangle$. This can be refactored to $|10\rangle(\alpha|0\rangle -\beta|1\rangle)$. Therefore if we measure the first and second qubit to be 10, we know that the third qubit, \textbf{there}, is in the state $(\alpha|0\rangle -\beta|1\rangle)$.
+\item If we measure and get a result 11, the superposition collapses, leaving only terms consistent with this result. That's $\alpha|111\rangle -\beta|110\rangle$. This can be refactored to $|11\rangle(\alpha|1\rangle -\beta|0\rangle)$. Therefore if we measure the first and second qubit to be 11, we know that the third qubit, \textbf{there}, is in the state $(\alpha|1\rangle -\beta|0\rangle)$.
+\end{itemize}
+%
+      \end{tabular}
+    \right]
+\]\\
+
+In this task you are going to add to the \textbf{body} of the \verb$Teleport$ operation, beneath the code in Task 2.
+\begin{itemize}
+\item We are going to perform a measurement first on `msg'. You need to write an \verb$if$ statement. The condition of the \verb$if$ statement will be: measure `msg' and sees if it is equal to \verb$One$. For now, leave the body code empty (we'll fill this in in the next task). Hint: you can check for equality using `=='. 
+\item We're also going to add an \verb$if$ statement whose condition is: measure `here' and see if it is equal to \verb$One$. Again, leave the body code empty until the next task.
+\end{itemize}
+
+\subsection{Task 4: Interpreting the result}
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Theory} \par
+As a reminder, the original message we wished to send was:
+$$ |\psi\rangle = \alpha|0\rangle + \beta|1\rangle $$
+We need to get the \textbf{there} qubit into this state, so that the received state is the one that was intended.
+\begin{itemize}
+\item If we measured and got a result of 00, then the third qubit, \textbf{there}, is in the state $(\alpha|0\rangle +\beta|1\rangle)$. As this is the intended \textbf{message}, no alteration is required.
+\item If we measured and got a result of 01, then the third qubit, \textbf{there}, is in the state $(\alpha|1\rangle +\beta|0\rangle)$. This differs from the intended \textbf{message}, however applying a NOT gate gives us the desired state $(\alpha|0\rangle +\beta|1\rangle)$.
+\item If we measured and got a result of 10, then the third qubit, \textbf{there}, is in the state $(\alpha|0\rangle -\beta|1\rangle)$. This differs from the intended \textbf{message}, however applying a Z gate gives us the desired state $(\alpha|0\rangle +\beta|1\rangle)$.
+\item If we measured and got a result of 11, then the third qubit, \textbf{there}, is in the state $(\alpha|1\rangle -\beta|0\rangle)$. This differs from the intended \textbf{message}, however applying a NOT gate followed by a Z gate gives us the desired state $(\alpha|0\rangle +\beta|1\rangle)$.
+\end{itemize}
+
+To summarize, if we measure and the first qubit is 1, a Z gate is applied. If we measure and the second qubit is 1, a NOT gate is applied.
+%
+      \end{tabular}
+    \right]
+\]\\
+
+In this task you are going to add the body of the \verb$if$ statements you wrote in Task 3.
+\begin{itemize}
+\item If we measure the first qubit `msg' and the result is \verb$One$, we need to apply a \verb$Z$ gate, which we can do using \verb$Z()$. You can read more about this operation here: \url{https://docs.microsoft.com/en-us/qsharp/api/prelude/microsoft.quantum.primitive.z?view=qsharp-preview}
+\item If we measure the second qubit `here' and the result is \verb$One$, we need to apply a \verb$NOT$ gate, whcih we can do using \verb$X()$. You can read more about this operation here: \url{https://docs.microsoft.com/en-us/qsharp/api/prelude/microsoft.quantum.primitive.x?view=qsharp-preview}
+\item Finally you want to \verb$Reset$ the `here' qubit.
+\end{itemize}
+
+\subsection{Task 5: Using the Teleport operation}
+Now that we've created an operation that can `teleport' one qubit to another, we're going to use it to send a qubit state. 
+\begin{itemize}
+\item To do that, we're going to fill out the `TeleportArbitraryState' operation. You can see from the type definition it takes a unitary operation as input and returns nothing.
+\item Inside the body you should allocate two qubits to a register.
+\item Using the `let' keyword, assign the first qubit (at index 0) to `msg'
+\item Using the `let' keyword, assign the second qubit (at index 1) to `there'
+\item Apply the unitary gate, u, to `msg' to prepare state on the message qubit
+\item Teleport the message, msg, to `there' using the \verb$TeleportMessage$ operation
+\item Apply the inverse of the unitary to the target qubit. You can do that by writing: \verb$(Adjoint u)(there);$
+\item Reset `msg' and `there'. You can do this using the \verb$ApplyToEach$ operation, documented here: \url{https://docs.microsoft.com/en-us/qsharp/api/canon/microsoft.quantum.canon.applytoeach?view=qsharp-preview}. You should pass it the \verb$Reset$ operation, and the array of qubits on which to apply it to (`register').
+\item You can now run this!
+\end{itemize}
+
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Functors} \par
+A functor in Q\# defines a new operation from another operation. For example, the operation that results from applying the \verb$Adjoint$ functor to the \verb$Y$ operation is written as \verb$(Adjoint Y)$. The new operation may then be invoked like any other operation. \\
+\\
+Operation types are specified by the their signature and the list of functors they support. For example, the \verb$TeleportArbitraryState$ operation has type (Qubit =\textgreater () : Adjoint), which indicates that it supports the \verb$Adjoint$ functor. An operation type that does not support any functors is specified by its signature alone, with no trailing `\verb$:$'.
+%
+      \end{tabular}
+    \right]
+\]\\
+
+\[
+  \left[
+      \begin{tabular}{@{\quad}m{\textwidth}@{\qquad}m{\textwidth}@{\quad}}
+          \textbf{Adjoint} \par
+In quantum computing, the adjoint of an operation is the complex conjugate transpose of the operation. For operations that implement a unitary operator, the adjoint is the inverse of the operation.
+%
+      \end{tabular}
+    \right]
+\]\\
+
+\section{Tutorial: Challenge 3 - Simple Algorithms}
+This isn't really a challenge as such. It is an invitation to explore the quantum samples which you can find here: \\
+
+\url{https://github.com/Microsoft/Quantum/tree/master/Samples}
+\\
+Here's you'll find implementations of Shor's algorithm for factoring integers, Grover's algorithm for searching, and more. \\
+
+\section{Tutorial: Testing}
+Testing is an important part of quantum development with Q\#. The Quantum Development Kit comes with two different simulators (full state and trace) which are used for different types of test and debugging scenarios. \\
+\\
+You can find a tutorial on testing using both these simulators in the Testing folder here:\\
+\url{https://github.com/frtibble/QuantumWorkshop/}
+\\
+\\
+Please let the lab helpers know if you are starting the testing tutorial and they will provide further explanation and a walkthrough of the sample code provided.\\
+
+\end{document}
