@@ -72,7 +72,7 @@ In order to save test output to an XML file for further analysis, you must run t
     - Mac: `/usr/local/share/dotnet/shared/Microsoft.NETCore.App` !!!THIS MAY BE INCORRECT - PLEASE CORRECT ME IF I AM WRONG (no Mac to test)!!!
 2. Modify the TutorialTests.csproj file accordingly (add the following snippet to the `<PropertyGroup>` element at the start of the file):
     - `<RuntimeFrameworkVersion>2.x.x</RuntimeFrameworkVersion>`
-3. In order to save test output as an XML file, run tests with the following command (replacing `testOutput` with a filename of your choice):
+3. In order to save test output as an XML file, run tests (from the TutorialTests directory) with the following command (replacing `testOutput` with a filename of your choice):
     - `dotnet xunit -xml testOutput.xml`
 
 ## Extension ##
