@@ -173,7 +173,7 @@ Here's the code that you need to add inside the \verb$Main$ method body:
     \begin{lstlisting}
            using (var sim = new QuantumSimulator())
             {
-                var result = Greet.Run(sim, "Imperial").Result;
+                var result = Greet.Run(sim, "Quantum").Result;
                 System.Console.WriteLine(result);
             }
 	\end{lstlisting}
@@ -198,7 +198,7 @@ $ dotnet run
 \end{lstlisting}
 \end{itemize}
 
-This should output `Hello, Imperial!'. Of course, this isn't very impressive. But now we've seen how it works, we can write our first quantum application. 
+This should output `Hello, Quantum!'. Of course, this isn't very impressive. But now we've seen how it works, we can write our first quantum application. 
 
 \section{Tutorial: Challenge 1 - Creating a Bell State}
 To begin this series of challenges we're going to start with the simplest program possible and build it up to demonstrate quantum superposition and quantum entanglement by creating a Bell State. We will start with a qubit in a basis state $\ket{0}$, perform some operations on it and then measure the result.
