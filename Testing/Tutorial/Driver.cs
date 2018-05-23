@@ -14,10 +14,9 @@ namespace Tutorial
                 var numZeroes = 0;
                 var count = 100;
 
-                // Run many times to ensure our target qubit is in the |+> state as desired
+                // Run many times to ensure our target qubit is in the |+> state after teleporting, as desired
                 foreach (var run in Enumerable.Range(0, count))
                 {
-                    // Don't worry about the red squiggly line here (VS Code)! It will still run :)
                     var res = TeleportPlusState.Run(sim).Result;
 
                     if (res == Result.Zero)

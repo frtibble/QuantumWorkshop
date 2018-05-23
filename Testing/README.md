@@ -27,11 +27,11 @@ The purpose of this project is to teach you about testing in Q# using both the f
 
 To set up a new Q# project with unit tests and open it in VS Code, run the following commands from your favourite terminal:
 
-```powershell
+```bash
 mkdir Testing
 cd .\Testing\
 dotnet new sln --name Tutorial
-dotnet new console -lang q# --output Tutorial
+dotnet new console -lang q# -o Tutorial
 dotnet new xunit -lang q# -o TutorialTests
 dotnet sln add .\Tutorial\Tutorial.csproj
 dotnet sln add .\TutorialTests\TutorialTests.csproj

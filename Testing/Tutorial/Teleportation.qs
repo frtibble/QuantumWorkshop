@@ -31,7 +31,7 @@
 
     operation Teleport(source : Qubit, target : Qubit, msg : Qubit) : () {
         body {
-            // Ensure target qubit state is |0> as expected
+            // Ensure target and source qubit state is |0> as expected
             AssertZero(target);
 			AssertZero(source);
 
@@ -46,6 +46,7 @@
             //H(source);
 
             // Check our states are as expected, 50% probability of measuring to find |0> and 50% to find |1>
+            // These two lines are required for the trace simulator to work (assuming throwOnUnconstraintMeasurement is set to true in the simulator config)
             AssertZeroProb(source, 0.5);
             AssertZeroProb(msg, 0.5);
 
@@ -61,6 +62,7 @@
         }
     }
 
+    // Specific example just for demonstration of dotnet run
 	operation TeleportPlusState () : Result {
         body {
             mutable result = Zero;
@@ -74,7 +76,7 @@
 
 				AssertZero(target);
 
-                // Generate the |+> state by applying a Hadamard gate to our source qubit (initialised as |0> by default)
+                // Generate the |+> state by applying a Hadamard gate to our message qubit (initialised as |0> by default)
                 H(msg);
 
                 // Perform the Teleport operation
